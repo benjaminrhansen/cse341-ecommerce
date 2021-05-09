@@ -13,7 +13,8 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const product = new Product(null, title, imageUrl, description, price);
+  const tags = req.body.tags;
+  const product = new Product(null, title, imageUrl, description, price, tags);
   product.save();
   res.redirect('/');
 };
@@ -74,4 +75,13 @@ exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   Product.deleteById(prodId);
   res.redirect('/admin/products');
+};
+
+// 'admin/update-ids' => POST
+exports.postAddUniqueIds = (req, res, next) => {
+  Product.addUniqueIds();
+  res.setHeader('Content-Type', 'application/json');
+  // send the last write chunk and end the response
+    
+  res.end(JSON.stringify({ message: "IDs successfully updated" }));
 };

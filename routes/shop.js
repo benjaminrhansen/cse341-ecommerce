@@ -10,7 +10,12 @@ const router = express.Router();
 // these routes but sent in the request
 router.get('/', shopController.getIndex);
 
-router.get('/products', shopController.getProducts);
+// searchController now contains the new router.get('/products', shopController.getProducts); // must call next if not tagSearch
+router.get('/products',shopController.getProducts);
+
+// must be placed before the next get route or else it will 
+// never match
+router.get('/products/allTags', shopController.getAllProductTags);
 
 // the colon in :productId signals to EJS to create a 
 // :productId but instead treat it as a variable
@@ -21,6 +26,7 @@ router.get('/products/:productId', shopController.getProduct);
 // example
 // router.get('/router/delete'); 
 // that's a valid route but EJS won't evaluate it because it's already received a variable dynamic route
+
 
 router.get('/cart', shopController.getCart);
 

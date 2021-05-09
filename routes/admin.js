@@ -21,4 +21,6 @@ router.post('/delete-product', adminController.postDeleteProduct);
 // /admin/add-product => POST
 router.post('/add-product', adminController.postAddProduct);
 
+router.use('/update-ids', adminController.postAddUniqueIds);
+
 module.exports = router;

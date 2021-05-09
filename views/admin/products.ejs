@@ -6,6 +6,7 @@
         <%- include('../includes/navigation.ejs') %>
 
             <main>
+                <button onclick="updateProdIds();" class="btn" id="update-prod-ids" type="submit">Update All Product IDs</button>
                 <% if (prods.length > 0) { %>
                     <div class="grid">
                         <% for (let product of prods) { %>
@@ -41,4 +42,19 @@
                         <h1>No Products Found!</h1>
                         <% } %>
             </main>
+            <script type="text/javascript">
+                function updateProdIds() {
+                    fetch("/admin/update-ids")
+                        // process response once Promise is fulfilled
+                        .then(response => response.json())
+                        .catch(error => {
+                            // handle the error
+                            console.log(error);
+                        })
+                        .then(jsonResponse => {
+                            console.log(jsonResponse);
+                            alert(jsonResponse);
+                        });
+                }
+            </script>
             <%- include('../includes/end.ejs') %>

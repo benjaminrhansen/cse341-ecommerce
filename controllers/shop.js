@@ -2,6 +2,18 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
+  const tagSearch = req.query.tagSearch;
+  if (tagSearch) {
+      console.log("Searching by tag: ", tagSearch)
+      Product.fetchByTag(tagSearch, products => {
+          res.render('shop/product-list', {
+              prods: products,
+              pageTitle: 'All Products',
+              path: '/products'
+          });
+      });
+      return;
+  }
   Product.fetchAll(products => {
     res.render('shop/product-list', {
       prods: products,
@@ -26,14 +38,30 @@ exports.getProduct = (req, res, next) => {
   })
 }
 
-exports.getIndex = (req, res, next) => {
-  Product.fetchAll(products => {
-    res.render('shop/index', {
-      prods: products,
-      pageTitle: 'Shop',
-      path: '/'
-    });
+exports.getAllProductTags = (req, res, next) => {
+  Product.getAllPossibleTags(allTags => {
+    // with help from this tutorial: https://nodejs.org/en/docs/guides/anatomy-of-an-http-transaction/
+    res.setHeader('Content-Type', 'application/json');
+    // send the last write chunk and end the response
+    
+    res.end(JSON.stringify([...new Set(allTags)]));
   });
+}
+
+exports.getIndex = (req, res, next) => {
+  const tagSearch = req.query.tagSearch;
+  if (!tagSearch) {
+    Product.fetchAll(products => {
+      res.render('shop/index', {
+        prods: products,
+        pageTitle: 'Shop',
+        path: '/'
+      });
+    });
+  }
+  else {
+    next(); // just render the next route
+  }
 };
 
 exports.getCart = (req, res, next) => {
