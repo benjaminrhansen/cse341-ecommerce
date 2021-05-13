@@ -3,6 +3,7 @@ const PORT = process.env.PORT || 3000 // So we can run on heroku || (OR) localho
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const cors = require('cors') // Place this with other requires (like 'path' and 'express')
 
 const errorController = require('./controllers/error');
