@@ -28,14 +28,14 @@ router.get('/products/:productId', shopController.getProduct);
 // that's a valid route but EJS won't evaluate it because it's already received a variable dynamic route
 
 
-router.get('/cart', shopController.getCart);
+// router.get('/cart', shopController.getCart);
 
 router.post('/cart', shopController.postCart);
 
-router.post('/cart-delete-item', shopController.postCartDeleteProduct);
+// router.post('/cart-delete-item', shopController.postCartDeleteProduct);
 
-router.get('/orders', shopController.getOrders);
+// router.get('/orders', shopController.getOrders);
 
-router.get('/checkout', shopController.getCheckout);
+// router.get('/checkout', shopController.getCheckout);
 
 module.exports = router;

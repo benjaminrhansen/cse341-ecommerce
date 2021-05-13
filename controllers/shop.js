@@ -1,26 +1,38 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 
 exports.getProducts = (req, res, next) => {
   const tagSearch = req.query.tagSearch;
   if (tagSearch) {
       console.log("Searching by tag: ", tagSearch)
-      Product.fetchByTag(tagSearch, products => {
+      Product.fetchByTag(tagSearch)
+        .then(products => {
           res.render('shop/product-list', {
               prods: products,
               pageTitle: 'All Products',
               path: '/products'
           });
-      });
+        })
+        .catch(err => {
+          console.log(err);
+          res.render('shop/product-list', {
+              prods: [],
+              pageTitle: 'All Products',
+              path: '/products'
+          });
+        })
       return;
   }
-  Product.fetchAll(products => {
-    res.render('shop/product-list', {
-      prods: products,
-      pageTitle: 'All Products',
-      path: '/products'
+  Product.fetchAll()
+    .then(products => {
+      res.render('shop/product-list', {
+        prods: products,
+        pageTitle: 'All Products',
+        path: '/products'
+      });
+    })
+    .catch(err => {
+      console.log(err);
     });
-  });
 };
 
 // handler for getting one product
@@ -29,14 +41,16 @@ exports.getProduct = (req, res, next) => {
   // through the path
   const prodId = req.params.productId; 
   console.log("Looking up product", prodId);
-  Product.findById(prodId, product => {
-    res.render('shop/product-detail', {
-      product: product,
-      pageTitle: product.title,
-      path: "/products"
-    });
-  })
-}
+  Product.findById(prodId)
+    .then(product => {
+      res.render('shop/product-detail', {
+        product: product,
+        pageTitle: product.title,
+        path: "/products"
+      });
+    })
+    .catch(err => console.log(err));
+};
 
 exports.getAllProductTags = (req, res, next) => {
   Product.getAllPossibleTags(allTags => {
@@ -49,19 +63,30 @@ exports.getAllProductTags = (req, res, next) => {
 }
 
 exports.getIndex = (req, res, next) => {
-  const tagSearch = req.query.tagSearch;
-  if (!tagSearch) {
-    Product.fetchAll(products => {
+  // const tagSearch = req.query.tagSearch;
+  // if (!tagSearch) {
+  //   Product.fetchAll(products => {
+  //     res.render('shop/index', {
+  //       prods: products,
+  //       pageTitle: 'Shop',
+  //       path: '/'
+  //     });
+  //   });
+  // }
+  // else {
+  //   next(); // just render the next route
+  // }
+  Product.fetchAll()
+    .then(products => {
       res.render('shop/index', {
         prods: products,
-        pageTitle: 'Shop',
+        pageTitle: "Shop",
         path: '/'
       });
+    })
+    .catch(err => {
+      console.log(err);
     });
-  }
-  else {
-    next(); // just render the next route
-  }
 };
 
 exports.getCart = (req, res, next) => {
@@ -70,7 +95,7 @@ exports.getCart = (req, res, next) => {
       const cartProducts = [];
       products.forEach((product, index) => {
         const cartProductData = cart.products.find(
-          prod => prod.id === product.id
+          prod => prod.id === product._id
         );
         if (cartProductData) {
           cartProducts.push({ productData: product, qty: cartProductData.qty });
@@ -87,11 +112,24 @@ exports.getCart = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
+  let fetchedCart;
+  let newQuantity = 1;
   console.log(prodId);
-  Product.findById(prodId, product => {
-    Cart.addProduct(prodId, product.price);
-  })
-  res.redirect('/cart');
+  Product.findById(prodId).then(product => {
+    return req.user.addToCart(product);
+  }).then(result => {
+    console.log(result);
+  }).catch(err => console.log(err));
+  // req.user
+  //   .getCart()
+  //   .then(cart => {
+  //     fetchedCart = cart;
+  //     return cart.getProducts()
+  //   })
+  // Product.findById(prodId, product => {
+  //   Cart.addProduct(prodId, product.price);
+  // })
+  // res.redirect('/cart');
 }
 
 exports.postCartDeleteProduct = (req, res, next) => {

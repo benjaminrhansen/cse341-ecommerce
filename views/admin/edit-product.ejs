@@ -7,7 +7,7 @@
    <%- include('../includes/navigation.ejs') %>
 
     <main>
-        <form class="product-form" action="/admin/<% if (editing) { %>edit-product<% } else { %>add-product<% } %>" method="POST">
+        <form class="product-form" action="/admin/<% if (editing) { %>edit-product<%//=('/' + product._id)%><% } else { %>add-product<% } %>" method="POST">
             <div class="form-control">
                 <label for="title">Title</label>
                 <input type="text" name="title" id="title" value="<% if (editing) { %><%= product.title %><% } %>">
@@ -22,13 +22,19 @@
             </div>
             <div class="form-control">
                 <label for="tags">Tags (seperated by commas)</label>
-                <input type="text" name="tags" id="tags" rows="1" value="<% if (editing) { %><%= product.tags.join(separator=', ') %><% } %>"></textarea>
+                <input type="text" name="tags" id="tags" rows="1" value="<% if (editing) { %><%= product.tags.join(separator=', ') %><% } %>">
             </div>
             <div class="form-control">
                 <label for="description">Description</label>
                 <textarea name="description" id="description" rows="5"><% if (editing) { %><%= product.description %><% } %></textarea>
             </div>
 
+            <!-- Other Request Body Parameters -->
+            <% if (editing) { %>
+                <input type="hidden" name="productId" value="<%= product._id %>">
+            <% } %>
+
+            <!-- Submit button -->
             <button class="btn" type="submit"><% if (editing) { %>Update Product<% } else { %>Add Product<% } %></button>
         </form>
     </main>
