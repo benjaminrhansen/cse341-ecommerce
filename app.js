@@ -3,6 +3,7 @@ const PORT = process.env.PORT || 3000 // So we can run on heroku || (OR) localho
 
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors') // Place this with other requires (like 'path' and 'express')
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -35,7 +36,29 @@ app.use(shopRoutes);
 
 app.use(errorController.get404);
 
-mongoConnect(() => {
-    console.log("Connected to client");
-    app.listen(PORT, () => console.log(`Listening on port ${ PORT }`));
-});
+
+const corsOptions = {
+    origin: "https://thawing-stream-34012.herokuapp.com",
+    optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+const options = {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    family: 4
+};
+
+const MONGODB_URL = process.env.MONGODB_URL || "mongodb+srv://benjihansen:cammyc-ziptyb-rIhvo7@cluster0.unnmq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+mongoose
+  .connect(
+    MONGODB_URL, options
+  )
+  .then(result => {
+    app.listen(PORT, () => { console.log("Listening on port ", PORT) });
+  })
+  .catch(err => {
+    console.log(err);
+  });
