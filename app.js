@@ -1,3 +1,7 @@
+// from the docs: https://www.npmjs.com/package/dotenv
+// "As early as possible in your application, require and configure dotenv."
+require('dotenv').config()
+
 const path = require('path');
 const PORT = process.env.PORT || 3000 // So we can run on heroku || (OR) localhost:3000
 
@@ -52,7 +56,7 @@ const options = {
     family: 4
 };
 
-const MONGODB_URL = process.env.MONGODB_URL || "mongodb+srv://benjihansen:cammyc-ziptyb-rIhvo7@cluster0.unnmq.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+const MONGODB_URL = process.env.MONGODB_URL 
 mongoose
   .connect(
     MONGODB_URL, options
