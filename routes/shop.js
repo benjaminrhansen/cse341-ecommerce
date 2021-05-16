@@ -13,8 +13,8 @@ router.get('/', shopController.getIndex);
 // searchController now contains the new router.get('/products', shopController.getProducts); // must call next if not tagSearch
 router.get('/products',shopController.getProducts);
 
-// must be placed before the next get route or else it will 
-// never match
+// // must be placed before the next get route or else it will 
+// // never match
 router.get('/products/allTags', shopController.getAllProductTags);
 
 // the colon in :productId signals to EJS to create a 
@@ -28,13 +28,15 @@ router.get('/products/:productId', shopController.getProduct);
 // that's a valid route but EJS won't evaluate it because it's already received a variable dynamic route
 
 
-// router.get('/cart', shopController.getCart);
+router.get('/cart', shopController.getCart);
 
 router.post('/cart', shopController.postCart);
 
 // router.post('/cart-delete-item', shopController.postCartDeleteProduct);
 
 // router.get('/orders', shopController.getOrders);
+
+// router.post('/create-order', shopController.postOrder);
 
 // router.get('/checkout', shopController.getCheckout);
 

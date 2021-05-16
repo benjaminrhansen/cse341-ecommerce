@@ -27,13 +27,24 @@
                                         <%= product.description %>
                                     </p>
                                 </div>
+                                <!--Display each tag in small print (small print not implemented)-->
+                                <div class="card__content">
+                                    <label for="tags-ul">Tags:</label>
+                                    <ul id="tags-ul">
+                                        <% product.tags.forEach(tag=> { %>
+                                            <li>
+                                                <%= tag %>
+                                            </li>
+                                            <% }); %>
+                                    </ul>
+                                </div>
                                 <div class="card__actions">
                                     <a href="/admin/edit-product/<%= product._id %>?edit=true" class="btn">Edit</a>
                                     <form action="/admin/delete-product" method="POST">
                                         <button class="btn" type="submit">Delete</button>
                                         <input type="hidden" name="productId" value="<%= product._id %>">
                                     </form>
-
+                        
                                 </div>
                             </article>
                             <% } %>

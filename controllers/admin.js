@@ -1,4 +1,4 @@
-const Product = require('../models/product');
+const Product = require('../models/product').Product;
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -13,10 +13,26 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  const tags = req.body.tags;
-  const product = new Product(title, imageUrl, description, price, tags, null, req.user._id);
+  const tags = req.body.tags ?
+    req.body.tags.split(",").map(tag => {
+      if (typeof (tag) === typeof (""))
+        tag = tag.trim();
+      return tag;
+    }) : [];
+
+  // trim input as needed. Ideally, this would be done on the browser
+  console.log("Here are the tags:", tags);
+  const product = new Product({
+    title: title, 
+    imageUrl: imageUrl, 
+    description: description, 
+    price: price, 
+    tags: tags,
+    userId: req.user // mongoose will pick the id from this object
+  });
+  // the save method comes from mongoose
   product
-    .save()
+    .save() // mongoose call
     // after the save promise has evaluated, do
     .then(result => {
       console.log("Created Product");
@@ -62,31 +78,55 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedImageUrl = req.body.imageUrl;
   const updatedDescription = req.body.description;
-  const updatedTags = req.body.tags;
-  const updatedProduct = new Product(
-    updatedTitle,
-    updatedImageUrl,
-    updatedDescription,
-    updatedPrice,
-    updatedTags,
-    prodId, // we're updating a product
-    req.user._id
-  );
-  console.log("Saving the edited product:", updatedProduct);
-  updatedProduct.save()
-    // after the save promise has evaluated, do
-    .then(result => {
+  const updatedTags = req.body.tags ?
+    req.body.tags.split(",").map(tag => {
+      if (typeof (tag) === typeof (""))
+        tag = tag.trim();
+      return tag;
+    }) : [];
+
+  Product.findById(prodId)
+    .then(product => {
+      // mongoose object
+      product.title = updatedTitle;
+      product.price = updatedPrice;
+      product.description = updatedDescription;
+      product.imageUrl = updatedImageUrl;
+      product.tags = updatedTags;
+      console.log("Saving the edited product:", product);
+      product
+        .save() // does an update
       console.log("Updated Product");
       res.redirect('/admin/products');
     })
-    .catch(err => {
-      console.log(err);
-    });
+    .catch(err => console.log(err));
+  // const updatedProduct = new Product({
+  //   updatedTitle,
+  //   updatedImageUrl,
+  //   updatedDescription,
+  //   updatedPrice,
+  //   updatedTags,
+  //   // prodId, // we're updating a product
+  //   // req.user._id
+  // });
+  // updatedProduct.save()
+  //   // after the save promise has evaluated, do
+  //   .then(result => {
+  //     console.log("Updated Product");
+  //     res.redirect('/admin/products');
+  //   })
+  //   .catch(err => {
+  //     console.log(err);
+  //   });
 };
 
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
+    // populate populates a field with all the information and not just the id - Maxamillion
+    // .populate('userId', 'name')
+    // select allows you to specify which fields should be returned from the database
+    //.select('title price -_id') 
     .then(products => {
       res.render('admin/products', {
         prods: products,
@@ -108,7 +148,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteById(prodId)
+  Product.findByIdAndRemove(prodId)
     .then(() => {
       console.log("Product deleted");
       res.redirect('/admin/products');
