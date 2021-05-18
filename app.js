@@ -32,7 +32,7 @@ app.use((req, res, next) => {
     User.findById(process.env.ADMIN_ID)
         .then(user => {
             console.log("User found:", user);
-            console.log("User's cart: ", user.cart)
+            // console.log("User's cart: ", user.cart)
             req.user = user; // mongoose object
             next(); // send requests to the next handler
         })

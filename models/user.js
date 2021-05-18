@@ -18,7 +18,7 @@ const userSchema = new Schema({
     },
     cart: {
         items: [{
-            productId: {
+            product: {
                 type: Schema.Types.ObjectId, // the type to store a reference to a product
                 ref: 'Product', // relation to the Product model
                 required: true
@@ -34,8 +34,8 @@ const userSchema = new Schema({
 userSchema.methods.addToCart = function(product) {
     // this refers to the schema
     const cartProductIndex = this.cart ? this.cart.items.findIndex(cp => {
-        console.log("What is this cp productId?: ", cp.productId);
-        return cp.productId.toString() === product._id.toString();
+        console.log("What is this cp product id?: ", cp.product);
+        return cp.product.toString() === product._id.toString();
     }) : null;
     console.log("Product of Cart Index:", cartProductIndex);
     let newQuantity = 1;
@@ -45,7 +45,7 @@ userSchema.methods.addToCart = function(product) {
         updatedCartItems[cartProductIndex].quantity = newQuantity;
     } else {
         updatedCartItems.push({
-            productId: product._id, // will be store as an ObjectId already
+            product: product._id, // will be store as an ObjectId already
             quantity: newQuantity
         });
     }
@@ -61,6 +61,17 @@ userSchema.methods.addToCart = function(product) {
     //     { $set: { cart: updatedCart } }
     // );
 }
+
+userSchema.methods.removeFromCart = function(productId) {
+    console.log("Deleting product:", productId);
+    const updatedCartItems = this.cart.items.filter(item => {
+        // each item has a product ID named product
+        // it's a relation
+        return item.product.toString() !== productId.toString();
+    });
+    this.cart.items = updatedCartItems;
+    return this.save();
+};
 
 module.exports = mongoose.model('User', userSchema);
 

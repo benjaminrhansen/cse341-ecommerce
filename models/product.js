@@ -46,13 +46,10 @@ const productSchema = new Schema({
   }
 });
 
-
-// a model connects a Schema with a name
-// the corresponding collection will be named by mongoose
-// as all lowercase and plural => products
-exports.Product = mongoose.model('Product', productSchema);
-exports.getAllPossibleTags = () => {
-  return exports.Product.find() // returns a promise
+// methods executes on an instance of the productSchema
+// statics are like static functions in a class
+productSchema.statics.getAllPossibleTags = function() {
+  return this.find() // returns a promise
     .select('tags') // exract all tags from all products
     .then(products => {
       const allTags = products.reduce((accumTags, product) => {
@@ -67,6 +64,16 @@ exports.getAllPossibleTags = () => {
       return [];
     });
 }
+
+productSchema.statics.fetchByTag = function(tagSearch) {
+  // mongoose automatically inserts an $in query for arrays
+  return this.find({ tag: { $in: [tagSearch] } });
+}
+
+// a model connects a Schema with a name
+// the corresponding collection will be named by mongoose
+// as all lowercase and plural => products
+module.exports = mongoose.model('Product', productSchema);
 
 // COMMMENTED OUT FROM HERE DOWN
 // const getProductsFromFile = cb => {
