@@ -9,19 +9,36 @@ exports.getProducts = (req, res, next) => {
         .then(products => {
           console.log('Product-list search results:', products);
           res.render('shop/product-list', {
-              prods: products,
-              pageTitle: 'All Products',
-              path: '/products'
+            prods: products,
+            pageTitle: 'All Products',
+            //isAuthenticated: req.session.isLoggedIn,
+            path: '/products'
           });
         })
         .catch(err => {
           console.log(err);
           res.render('shop/product-list', {
-              prods: [],
-              pageTitle: 'All Products',
-              path: '/products'
+            prods: [],
+            pageTitle: 'All Products',
+            //isAuthenticated: req.session.isLoggedIn,
+            path: '/products'
           });
-        })
+        });
+      // processing after rendering response
+      console.log("Saving past search query: ", tagSearch);
+      // save the tag search if we have a user
+      if (req.user) {
+        // we must manually ensure that only a Set is being
+        // stored. Mongoose does not allow Sets so we will
+        // make sure the added search query is not a duplicate
+        // in the Array and convert the array to a set before
+        // saving it back to an array
+        // only insert if the tag searched for doesn't already exist in the system
+        if (!req.user.pastSearchHistory.includes(tagSearch)) {
+          req.user.pastSearchHistory.push(tagSearch);
+          return req.user.save(); // save the user to the database
+        }
+      }
       return;
   } else {
     Product.find() // dosn't return a cursor but the actual array
@@ -30,6 +47,7 @@ exports.getProducts = (req, res, next) => {
         res.render('shop/product-list', {
           prods: products,
           pageTitle: 'All Products',
+          //isAuthenticated: req.session.isLoggedIn,
           path: '/products'
         });
       })
@@ -61,6 +79,7 @@ exports.getProduct = (req, res, next) => {
       res.render('shop/product-detail', {
         product: product,
         pageTitle: product.title,
+        //isAuthenticated: req.session.isLoggedIn,
         path: "/products"
       });
     })
@@ -87,7 +106,11 @@ exports.getIndex = (req, res, next) => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'All Products',
-        path: '/products'
+        // isAuthenticated: req.session.isLoggedIn,
+        // // generate a token and add it to our views
+        // // to prevent CSRF attacks
+        // csrfToken: req.csrfToken(), // given by the csrf package
+        path: '/' // main page
       });
     })
     .catch(err => console.log(err));
@@ -126,7 +149,7 @@ exports.getCart = (req, res, next) => {
     // populate doesn't return a promise
     .execPopulate() // returns a promise to call then on ...
     .then(user => {
-      console.log("Cart products:", user.cart.items);
+      //console.log("Cart products:", user.cart.items);
       res.render('shop/cart', {
         path: '/cart',
         pageTitle: 'Your Cart',
@@ -138,6 +161,7 @@ exports.getCart = (req, res, next) => {
           ...
         ]
         */
+        //isAuthenticated: req.session.isLoggedIn,
         products: user.cart.items ? user.cart.items : []
       });
     })
@@ -145,14 +169,17 @@ exports.getCart = (req, res, next) => {
 };
 
 exports.postCart = (req, res, next) => {
+  const csrfToken = req.body._csrf;
+  console.log("CSRF Token: ", csrfToken);
   const prodId = req.body.productId;
   let fetchedCart;
   let newQuantity = 1;
-  console.log(prodId);
+  //console.log(prodId);
   Product.findById(prodId).then(product => {
     return req.user.addToCart(product);
   }).then(result => {
-    console.log(result);
+    // console.log(result);
+    res.redirect('/cart');
   }).catch(err => console.log(err));
   // req.user
   //   .getCart()
@@ -163,7 +190,6 @@ exports.postCart = (req, res, next) => {
   // Product.findById(prodId, product => {
   //   Cart.addProduct(prodId, product.price);
   // })
-  // res.redirect('/cart');
 }
 
 exports.postCartDeleteProduct = (req, res, next) => {
@@ -178,12 +204,14 @@ exports.postCartDeleteProduct = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  // find in the orders collection all documents 
+  // which match the user's id
+  Order.find({"user.userId": req.user._id})
     .then(orders => {
       res.render('shop/orders' , {
         path: '/orders',
         pageTitle: 'Your Orders',
+        //isAuthenticated: req.session.isLoggedIn,
         orders: orders
       });
     })
@@ -199,6 +227,9 @@ exports.postOrder = (req, res, next) => {
     // populate doesn't return a promise
     .execPopulate() // returns a promise to call then on ...
     .then(user => {
+      console.log("The user is (type ", typeof user, "):", user);
+      console.log("The user.cart is (type ", typeof user.cart, "):", user.cart);
+      console.log("The user.cart.items is (type ", typeof user.cart.items, "):", user.cart.items);
       console.log("Cart products:", user.cart.items);
       const order = new Order({
         user: {
@@ -206,8 +237,10 @@ exports.postOrder = (req, res, next) => {
           userId: req.user // mongoose will get the id from this user object
         },
         products: user.cart.items.map(item => {
+          console.log("Product document:", item.product._doc); 
           return {
-            productData: { ...item.product._doc }, // save the actual doc
+            // save the actual doc and not just the id
+            productData: { ...item.product._doc }, 
             quantity: item.quantity
           }
         })
@@ -215,11 +248,12 @@ exports.postOrder = (req, res, next) => {
       return order.save(); // save the new order, return a promise
     })
     .then(result => {
-      res.redirect('/orders');
+      // we have made the order, we can now clear the cart
+      // for the user
+      // get a promise because clearing the cart may take some time
+      return req.user.clearCart();
     })
-    .catch(err => console.log(err));
-  req.user 
-    .createOrder() // place order on current cart
+    // now we can redirect
     .then(result => {
       res.redirect('/orders');
     })
@@ -229,6 +263,7 @@ exports.postOrder = (req, res, next) => {
 exports.getCheckout = (req, res, next) => {
   res.render('shop/checkout', {
     path: '/checkout',
+    //isAuthenticated: req.session.isLoggedIn,
     pageTitle: 'Checkout'
   });
 };

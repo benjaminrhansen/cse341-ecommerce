@@ -10,9 +10,13 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     name: {
         type: String,
-        required: true
+        required: false // for now
     },
     email: {
+        type: String,
+        required: true
+    },
+    password: {
         type: String,
         required: true
     },
@@ -28,13 +32,19 @@ const userSchema = new Schema({
                 required: true
             }
         }]
+    },
+    // define the List of past search history queries
+    pastSearchHistory: {
+        type: Array, 
+        required: false
     }
 });
 
 userSchema.methods.addToCart = function(product) {
+    console.log("No cart? ", this.cart ? "Nope, we have a cart" : "Yep");
     // this refers to the schema
     const cartProductIndex = this.cart ? this.cart.items.findIndex(cp => {
-        console.log("What is this cp product id?: ", cp.product);
+        console.log("What is this cp product?: ", cp.product);
         return cp.product.toString() === product._id.toString();
     }) : null;
     console.log("Product of Cart Index:", cartProductIndex);
@@ -71,6 +81,11 @@ userSchema.methods.removeFromCart = function(productId) {
     });
     this.cart.items = updatedCartItems;
     return this.save();
+};
+
+userSchema.methods.clearCart = function() {
+    this.cart = { items: [] }; // clear the cart
+    return this.save(); // save it to the database
 };
 
 module.exports = mongoose.model('User', userSchema);

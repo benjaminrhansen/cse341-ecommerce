@@ -65,9 +65,13 @@ productSchema.statics.getAllPossibleTags = function() {
     });
 }
 
+// built with examples from 
+// https://stackoverflow.com/questions/16325817/in-mongoose-how-to-filter-an-array-of-objects
 productSchema.statics.fetchByTag = function(tagSearch) {
   // mongoose automatically inserts an $in query for arrays
-  return this.find({ tag: { $in: [tagSearch] } });
+  // if tagSearch is in the array, find will return those
+  // products
+  return this.find({ tags: { $in: [tagSearch] } });
 }
 
 // a model connects a Schema with a name

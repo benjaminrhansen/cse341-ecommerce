@@ -1,6 +1,7 @@
 /* Autocomplete function taken and adapted for my use case from */
-/* https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_autocomplete */
-function autocomplete(inp, arr) {
+/* most code from https://www.w3schools.com/howto/tryit.asp?filename=tryhow_js_autocomplete */
+/* I added the on-click pastSearchHistory functionality */
+function autocomplete(inp, arr, pastSearchHistory) {
   /*the autocomplete function takes two arguments,
   the text field element and an array of possible autocompleted values:*/
   var currentFocus;
@@ -40,6 +41,49 @@ function autocomplete(inp, arr) {
         }
       }
   });
+  
+  /* execute a function when someone clicks on the element and the 
+    element is empty */
+  inp.addEventListener("click", function(e) {
+      var a, b, i, val = this.value;
+      // if we have a value, return, we're not going to 
+      // suggest past search queries
+      if (val) { 
+        console.log("Value already exists in input field");
+        return false;
+      }
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array of past history ...*/
+      for (i = 0; i < pastSearchHistory.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (pastSearchHistory[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + pastSearchHistory[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += pastSearchHistory[i].substr(val.length);
+          /*insert a input field that will hold the current pastSearchHistoryay item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + pastSearchHistory[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
   /*execute a function presses a key on the keyboard:*/
   inp.addEventListener("keydown", function(e) {
       var x = document.getElementById(this.id + "autocomplete-list");
@@ -65,6 +109,7 @@ function autocomplete(inp, arr) {
         }
       }
   });
+
   function addActive(x) {
     /*a function to classify an item as "active":*/
     if (!x) return false;
@@ -107,9 +152,24 @@ fetch("/products/allTags")
         // handle the error
         console.log(error);
     })
-    .then(jsonResponse => {
+    .then(setOfTags => {
       console.log("Response successful, parsed as ...")
-      console.log(jsonResponse);
-      autocomplete(document.getElementById("tagSearch"), jsonResponse);
+      console.log(setOfTags);
+      // before we call the autocomplete function
+      // on the tagSearch element, we need to get the pastSearchHistory
+      // do another fetch
+      fetch("/admin/user/past-search")
+        .then(response => response.json())
+        .catch(error => {
+          console.log(error)
+        })
+        .then(pastSearchHistory => {
+          console.log("Response successful, parsed as ...")
+          console.log(pastSearchHistory);
+          autocomplete(document.getElementById("tagSearch"),
+            setOfTags,
+            pastSearchHistory);
+        })
+        .catch(err => console.log(err));
       console.log("Autocomplete successfully added");
     });

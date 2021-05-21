@@ -1,9 +1,11 @@
-const Product = require('../models/product').Product;
+const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
+    // added globally
+    //isAuthenticated: req.session.isLoggedIn,
     editing: false
   });
 };
@@ -65,6 +67,7 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
+        //isAuthenticated: req.session.isLoggedIn,
         product: product
       });
     })
@@ -131,6 +134,7 @@ exports.getProducts = (req, res, next) => {
       res.render('admin/products', {
         prods: products,
         pageTitle: "Admin Products",
+        //isAuthenticated: req.session.isLoggedIn,
         path: '/admin/products'
       });
     })
@@ -156,6 +160,22 @@ exports.postDeleteProduct = (req, res, next) => {
     .catch(err => {
       console.log(err);
     });
+};
+
+exports.getUserPastSearchHistory = (req, res, next) => {
+  // get the past search history of the current session
+  // user
+  // req.user would be added by app.js by default if 
+  // the user's session was active
+  if (req.user) {
+    console.log("Found past search history:", req.user.pastSearchHistory);
+    res.setHeader('Content-Type', 'application/json');
+    // send the last write chunk and end the response
+    return res.end(JSON.stringify(req.user.pastSearchHistory));
+  } else { // no current user, return an empty list
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify([])); // no history
+  }
 };
 
 // 'admin/update-ids' => POST
