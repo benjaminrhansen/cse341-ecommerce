@@ -1,0 +1,47 @@
+<%- include('../includes/head.ejs') %>
+    <link rel="stylesheet" href="/css/user-authorizations.css">
+    </head>
+
+    <body>
+        <%- include('../includes/navigation.ejs') %>
+        <main>
+            <% if (users.length <= 0) { %>
+                <h1 class="centered">The Competitive "IN" Group is Empty</h1>
+            <% } else { %>
+                <% if (users.length > 5) { %>
+                    <h1 class="centered">The Competitive "IN" Group is Full</h1>
+                <% } else { %>
+                    <h1 class="centered">The Competitive "IN" Group</h1>
+                <% } %>
+                <ul class="users__property-list">
+                    <% users.forEach(user => { %>
+                        <li class="users__property">
+                            <% if (user.name) { %>
+                                <h1><%= user.name %> --- <%= user.email %></h1>
+                            <% } else { %>
+                                <h1><%= user.email %></h1>
+                            <% } %>
+                            <form action="/admin/user/authorizations" method="POST">
+                                <!--Must add this to ensure the sessions don't get stolen-->
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <input type="hidden" value="<%= user._id %>" name="userId">
+                                <button class="btn danger" type="submit">Authorize</button>
+                            </form>
+                        </li>
+                    <% }) %>
+                </ul>
+                <hr>
+                <div class="centered">
+                    <form action="/admin/user/mailer-overview-link" target="_blank" method="GET">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn">Mailgun Overview Link</button>
+                    </form>
+
+                    <form action="/admin/user/authorizations/authorize-all" method="POST">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <button type="submit" class="btn">Authorize All</button>
+                    </form>
+                </div>
+            <% } %>
+        </main>
+        <%- include('../includes/end.ejs') %>

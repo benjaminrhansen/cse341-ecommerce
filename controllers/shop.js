@@ -16,7 +16,14 @@ exports.getProducts = (req, res, next) => {
           });
         })
         .catch(err => {
-          console.log(err);
+          if (err) {
+            console.log(err);
+            // for now, use Express to render the error page
+            const error = new Error(err); // 'Creating a new product failed.');
+            error.httpStatusCode = 500;
+            // throw the error onto until an error-handling middleware catches it
+            return next(error);
+          }
           res.render('shop/product-list', {
             prods: [],
             pageTitle: 'All Products',
@@ -51,7 +58,14 @@ exports.getProducts = (req, res, next) => {
           path: '/products'
         });
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.log(err);
+        // for now, use Express to render the error page
+        const error = new Error(err); // 'Creating a new product failed.');
+        error.httpStatusCode = 500;
+        // throw the error onto until an error-handling middleware catches it
+        return next(error);
+      });
   }
   // Product.fetchAll()
   //   .then(products => {
@@ -70,7 +84,7 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
   // extract the productId we added to the request parameters
   // through the path
-  const prodId = req.params.productId; 
+  const prodId = req.params.productId;
   console.log("Looking up product", prodId);
   // mongoose has a findById automatically converted
   // to ObjectID
@@ -83,7 +97,14 @@ exports.getProduct = (req, res, next) => {
         path: "/products"
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 };
 
 exports.getAllProductTags = (req, res, next) => {
@@ -96,7 +117,14 @@ exports.getAllProductTags = (req, res, next) => {
 
       res.end(JSON.stringify([...new Set(allTags)]));
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 }
 
 exports.getIndex = (req, res, next) => {
@@ -113,7 +141,14 @@ exports.getIndex = (req, res, next) => {
         path: '/' // main page
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
   // const tagSearch = req.query.tagSearch;
   // if (!tagSearch) {
   //   Product.fetchAll(products => {
@@ -165,7 +200,14 @@ exports.getCart = (req, res, next) => {
         products: user.cart.items ? user.cart.items : []
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 };
 
 exports.postCart = (req, res, next) => {
@@ -200,22 +242,36 @@ exports.postCartDeleteProduct = (req, res, next) => {
     .then(result => {
       res.redirect('/cart');
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 };
 
 exports.getOrders = (req, res, next) => {
   // find in the orders collection all documents 
   // which match the user's id
-  Order.find({"user.userId": req.user._id})
+  Order.find({ "user.userId": req.user._id })
     .then(orders => {
-      res.render('shop/orders' , {
+      res.render('shop/orders', {
         path: '/orders',
         pageTitle: 'Your Orders',
         //isAuthenticated: req.session.isLoggedIn,
         orders: orders
       });
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 };
 
 exports.postOrder = (req, res, next) => {
@@ -237,10 +293,10 @@ exports.postOrder = (req, res, next) => {
           userId: req.user // mongoose will get the id from this user object
         },
         products: user.cart.items.map(item => {
-          console.log("Product document:", item.product._doc); 
+          console.log("Product document:", item.product._doc);
           return {
             // save the actual doc and not just the id
-            productData: { ...item.product._doc }, 
+            productData: { ...item.product._doc },
             quantity: item.quantity
           }
         })
@@ -257,7 +313,14 @@ exports.postOrder = (req, res, next) => {
     .then(result => {
       res.redirect('/orders');
     })
-    .catch(err => console.log(err));
+    .catch(err => {
+      console.log(err);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
+    });
 }
 
 exports.getCheckout = (req, res, next) => {

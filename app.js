@@ -48,11 +48,25 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req, res, next) => {
+    // locals available on the browser
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    // generate a new token by calling the 
+    // csrfToken() function
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
+
+app.use((req, res, next) => {
     // check if the user for this session exists
     if (req.session.user) {
         // get the user from the current user id of the session
         User.findById(req.session.user._id)
             .then(user => {
+                // make it robust
+                if (!user) {
+                  return next();
+                }
                 // the req.session is not a mongoose model object
                 // so to get all the mongoose model methods we
                 // need to set a request parameter
@@ -60,19 +74,14 @@ app.use((req, res, next) => {
 
                 next(); // carryon to the next middleware
             })
-            .catch(err => console.log(err));
+            // for sync code, we can throw an error and
+            // the middleware will execute our error handling middleware
+            // but for async code, we need to trigger next()
+            // with an error passed inside
+            .catch(err => { next(new Error(err)); });
     } else {
         return next();
     }
-});
-
-app.use((req, res, next) => {
-    // locals available on the browser
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    // generate a new token by calling the 
-    // csrfToken() function
-    res.locals.csrfToken = req.csrfToken();
-    next();
 });
 
 // app.use((req, res, next) => {
@@ -93,8 +102,20 @@ app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
+app.use("/500", errorController.get500);
 app.use(errorController.get404);
-
+// 4 args for handling errors -- our error-handling middleware
+app.use((error, req, res, next) => {
+  // don't trigger a new request
+  // which may cause an infinite loop
+  //res.redirect('/500');
+  // instead, render the error page as in the error handler
+  res.status(500).render('500', {
+    pageTitle: 'Error!',
+    isAuthenticated: req.session.isLoggedIn,
+    path: '/500',
+  });
+});
 
 const corsOptions = {
     origin: "https://thawing-stream-34012.herokuapp.com",
@@ -138,6 +159,11 @@ mongoose
   .catch(err => {
     console.log("What's happening?")
     console.log(err);
+    // for now, use middleware to render the error page
+    const error = new Error(err); // 'Creating a new product failed.');
+    error.httpStatusCode = 500;
+    // throw the error onto until an error-handling middleware catches it
+    return next(error);
   });
 
 // mongoConnect(() => {

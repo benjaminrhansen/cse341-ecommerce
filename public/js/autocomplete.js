@@ -149,8 +149,13 @@ fetch("/products/allTags")
     // process response once Promise is fulfilled
     .then(response => response.json())
     .catch(error => {
-        // handle the error
-        console.log(error);
+      // handle the error
+      console.log(error);
+      // for now, use Express to render the error page
+      const error = new Error(err); // 'Creating a new product failed.');
+      error.httpStatusCode = 500;
+      // throw the error onto until an error-handling middleware catches it
+      return next(error);
     })
     .then(setOfTags => {
       console.log("Response successful, parsed as ...")
@@ -161,7 +166,12 @@ fetch("/products/allTags")
       fetch("/admin/user/past-search")
         .then(response => response.json())
         .catch(error => {
-          console.log(error)
+          console.log(error);
+          // for now, use Express to render the error page
+          const error = new Error(err); // 'Creating a new product failed.');
+          error.httpStatusCode = 500;
+          // throw the error onto until an error-handling middleware catches it
+          return next(error);
         })
         .then(pastSearchHistory => {
           console.log("Response successful, parsed as ...")
@@ -170,6 +180,13 @@ fetch("/products/allTags")
             setOfTags,
             pastSearchHistory);
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+          console.log(err);
+          // for now, use Express to render the error page
+          const error = new Error(err); // 'Creating a new product failed.');
+          error.httpStatusCode = 500;
+          // throw the error onto until an error-handling middleware catches it
+          return next(error);
+        });
       console.log("Autocomplete successfully added");
     });

@@ -20,6 +20,10 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    authorized: {
+        type: Boolean,
+        require: true
+    },
     cart: {
         items: [{
             product: {
@@ -33,6 +37,8 @@ const userSchema = new Schema({
             }
         }]
     },
+    resetToken: String,
+    resetTokenExpiration: Date,
     // define the List of past search history queries
     pastSearchHistory: {
         type: Array, 
