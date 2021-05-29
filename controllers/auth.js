@@ -310,6 +310,7 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.getReset = (req, res, next) => {
+  // make sure the user is authorized
   let message = req.flash('error');
   if (message.length > 0) {
     message = message[0];
@@ -350,19 +351,19 @@ exports.postReset = (req, res, next) => {
         console.log("Setting reset token expiration")
         user.resetTokenExpiration = Date.now() + 3600000; // one hour from now
         console.log("Saving the user")
-        return user.save();
-      })
-      .then(saved_result => {
-        res.redirect('/');
-        console.log("Sending mail to:", req.body.email);
-        mailer.send({
-          to: req.body.email,
-          subject: 'Password reset',
-          html: `
+        return user.save()
+          .then(saved_result => {
+            res.redirect('/');
+            console.log("Sending mail to:", req.body.email);
+            mailer.send({
+              to: req.body.email,
+              subject: 'Password reset',
+              html: `
             <p>You requested a password reset</p>
             <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password.</p>
           `
-        });
+            });
+          });
       })
       .catch(err=>{
         console.log(err);
