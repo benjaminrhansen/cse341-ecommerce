@@ -21,11 +21,14 @@
                             <% } else { %>
                                 <h1><%= user.email %></h1>
                             <% } %>
+                            <input type="hidden" id="copy-email" value="<%= user.email %>">
+                            <!--<button class="btn" onclick="myFunction()">Copy Email</button>-->
                             <form action="/admin/user/authorizations" method="POST">
                                 <!--Must add this to ensure the sessions don't get stolen-->
                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                 <input type="hidden" value="<%= user._id %>" name="userId">
-                                <button class="btn danger" type="submit">Authorize</button>
+                                <input type="hidden" name="doApprove" value="<%= user.authorized ? false : true %>">
+                                <button class="btn danger" type="submit"><%= user.authorized ? 'Deauthorize' : 'Authorize' %></button>
                             </form>
                         </li>
                     <% }) %>
@@ -39,9 +42,30 @@
 
                     <form action="/admin/user/authorizations/authorize-all" method="POST">
                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                        <button type="submit" class="btn">Authorize All</button>
+                        <% const doApprove = users.some(user => !user.authorized); %>
+                        <input type="hidden" name="doApprove" value="<%= doApprove %>">
+                        <button type="submit" class="btn"><%= doApprove ? "Authorize All" : "Deauthorize All" %></button>
                     </form>
                 </div>
             <% } %>
         </main>
+        <!-- A feature for another day
+        <script defer="true">
+            // function from https://www.w3schools.com/howto/howto_js_copy_clipboard.asp
+            function myFunction() {
+                /* Get the text field */
+                var copyText = document.getElementById("copy-email");
+
+                /* Select the text field */
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+                /* Copy the text inside the text field */
+                document.execCommand("copy");
+
+                /* Alert the copied text */
+                alert("Copied the text: " + copyText.value);
+            }
+        </script>
+    -->
         <%- include('../includes/end.ejs') %>

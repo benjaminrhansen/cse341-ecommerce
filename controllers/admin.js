@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 
+const User = require('../models/user');
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res, next) => {
@@ -318,28 +319,61 @@ exports.getUserPastSearchHistory = (req, res, next) => {
 
 // 'admin/user/authorizations' => GET
 exports.getUserAuthorizations = (req, res, next) => {
-  if (req.user) {
-    return res.render('admin/user-authorizations', {
-      path: '/admin/user/authorizations',
-      pageTitle: 'Admin User Authorizations',
-      users: [req.user],
-    }, function(err, html) {
-      // error handling flow from https://stackoverflow.com/questions/7283896/how-can-i-catch-a-rendering-error-missing-template-in-node-js-using-express-js/15689798
-      if (err) {
-        console.log(err)
-        res.redirect('/404'); // File doesn't exist
-      } else {
-        res.send(html);
-      }
-    });
-  }
-  // else redirect to the login screen
-  res.redirect('/login')
+  User.find()
+    .then(users => {
+      return res.render('admin/user-authorizations', {
+        path: '/admin/user/authorizations',
+        pageTitle: 'Admin User Authorizations',
+        users: users,
+      }, function (err, html) {
+        // error handling flow from https://stackoverflow.com/questions/7283896/how-can-i-catch-a-rendering-error-missing-template-in-node-js-using-express-js/15689798
+        if (err) {
+          console.log(err)
+          res.redirect('/404'); // File doesn't exist
+        } else {
+          res.send(html);
+        }
+      });
+    })
+    .catch(err => console.log(err));
 };
 
-// 'admin/user/authorizations' => POST
 exports.postUserAuthorizations = (req, res, next) => {
-  res.redirect('/');
+  const userId = req.body.userId;
+  // should we approve or not? doApprove is a bool
+  const doApprove = req.body.doApprove;
+  console.log("Do approve?", doApprove)
+  User.findOne({_id: userId})
+    .then(user => {
+      if (!user) {
+        throw new Error("user is not being found" + user.toString());
+      }
+      user.authorized = doApprove;
+      return user.save();
+    })
+    .then(result => {
+      console.log("User's authorization updated");
+      res.redirect('/admin/user/authorizations');
+    })
+    // just log the error for now
+    .catch(err => console.log(err));
+};
+
+exports.postUserAuthorizationsAuthorizeAll = (req, res, next) => {
+  // should we approve or not? doApprove is a bool
+  const doApprove = req.body.doApprove;
+  User.find()
+    .exec()
+    .then(users => {
+      // authorize all users
+      users.forEach(user => {
+        user.authorized = doApprove;
+        user.save();
+      });
+      res.redirect('/admin/user/authorizations');
+    })
+    .catch(err => console.log(err));
+  console.log('Authorizations updated on all users');
 };
 
 // 'admin/update-ids' => POST

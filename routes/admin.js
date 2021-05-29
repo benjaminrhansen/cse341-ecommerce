@@ -1,7 +1,6 @@
 const path = require('path');
 const isAuth = require('../middleware/is-auth');
 const { body } = require('express-validator');
-const MAILER_OVERVIEW_LINK = "https://app.mailgun.com/app/sending/domains/sandbox7fcf8e2e9a38462d889f7778d04ec215.mailgun.org";
 
 const express = require('express');
 
@@ -67,17 +66,17 @@ router.get('/edit-product/:productId', isAuth, adminController.getEditProduct); 
 
 router.post('/delete-product', isAuth, adminController.postDeleteProduct);
 
-router.get("/user/past-search", adminController.getUserPastSearchHistory);
+router.get("/user/past-search", isAuth, adminController.getUserPastSearchHistory);
 
-router.get("/user/authorizations", adminController.getUserAuthorizations);
+router.get("/user/authorizations", isAuth, adminController.getUserAuthorizations);
 
-router.post("/user/authorizations", adminController.postUserAuthorizations);
+router.post("/user/authorizations", isAuth, adminController.postUserAuthorizations);
 
-router.post("/user/authorizations/authorize-all", (req, res, next) => res.redirect('/'));
+router.post("/user/authorizations/authorize-all", isAuth, adminController.postUserAuthorizationsAuthorizeAll);
 
-router.use("/user/mailer-overview-link", (req, res, next) => {
-    console.log("Redirecting to the Mailer Overview Link");
-    res.redirect(MAILER_OVERVIEW_LINK);
+router.use("/user/mailer-overview-link", isAuth, (req, res, next) => {
+    console.log("Redirecting to the Mailer Overview Link:", process.env.MAILER_OVERVIEW_LINK);
+    res.redirect(process.env.MAILER_OVERVIEW_LINK);
 });
 
 // router.use('/update-ids', adminController.postAddUniqueIds);
