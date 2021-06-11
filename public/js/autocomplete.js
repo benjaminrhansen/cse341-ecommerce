@@ -154,7 +154,7 @@ fetch("/products/allTags")
       // for now, use Express to render the error page
       const error = new Error(err); // 'Creating a new product failed.');
       error.httpStatusCode = 500;
-      // throw the error onto until an error-handling middleware catches it
+      // throw the error on to the next then block until an error-handling function catches it
       return next(error);
     })
     .then(setOfTags => {
@@ -176,6 +176,7 @@ fetch("/products/allTags")
         .then(pastSearchHistory => {
           console.log("Response successful, parsed as ...")
           console.log(pastSearchHistory);
+          // ADD THE DATA AS A LISTENER
           autocomplete(document.getElementById("tagSearch"),
             setOfTags,
             pastSearchHistory);

@@ -47,6 +47,16 @@ app.use(session({
 app.use(csrfProtection);
 app.use(flash());
 
+// force HTTPS
+app.use((req, res, next) => {
+  // from https://stackoverflow.com/questions/8605720/how-to-force-ssl-https-in-express-js
+  // "The 'x-forwarded-proto' check is for Heroku"
+  if (!req.secure && req.get('x-forwarded-proto') !== 'https' && process.env.NODE_ENV !== "development") {
+    return res.redirect('https://' + req.get('host') + req.url);
+  }
+  next(); // else continue on
+});
+
 app.use((req, res, next) => {
     // locals available on the browser
     res.locals.isAuthenticated = req.session.isLoggedIn;

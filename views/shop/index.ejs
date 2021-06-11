@@ -35,6 +35,33 @@
                     </article>
                 <% } %>
             </div>
+            <section class="pagination">
+                <!--Always show the first page-->
+                <a href="/?page=1">1</a>
+
+                <!--If we have a previous page that's not the first, show it-->
+                <% if (hasPreviousPage && previousPage !== 1) { %>
+                    <a href="/?page=<%= previousPage %>">&lt--</a>
+                <% } %>
+
+                <!--Previous arrow-->
+                <!-- <a href="/?page=<%= hasPreviousPage ? previousPage : currentPage %>">&lt--</a> -->
+
+                <!--Show current page if current page is not the first-->
+                <% if (currentPage !== 1) { %>
+                    <a class="active" href="/?page=<%= currentPage %>"><%= currentPage %></a>
+                <% } %>
+
+                <!-- If we have a next page that's not the last, show it-->
+                <% if (hasNextPage && lastPage != nextPage) { %>
+                    <a href="/?page=<%= nextPage %>">--&gt</a>
+                <% } %>
+
+                <!-- If last page is not equal to the current one-->
+                <% if (lastPage != currentPage) { %>
+                    <a href="/?page=<%= lastPage %>"><%= lastPage %></a>
+                <% } %>
+            </section>
         <% } else { %>
             <h1>No Products Found!</h1>
         <% } %>

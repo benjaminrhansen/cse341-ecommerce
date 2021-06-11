@@ -1,6 +1,8 @@
 const Product = require('../models/product'); // a mongoose model
 const Order = require('../models/order');
 
+const ITEMS_PER_PAGE = 1; // testing
+
 exports.getProducts = (req, res, next) => {
   const tagSearch = req.query.tagSearch;
   if (tagSearch) {
@@ -128,27 +130,43 @@ exports.getAllProductTags = (req, res, next) => {
 }
 
 exports.getIndex = (req, res, next) => {
-  Product.find() // dosn't return a cursor but the actual array
-    .then(products => {
-      //console.log(products);
-      res.render('shop/index', {
-        prods: products,
-        pageTitle: 'All Products',
-        // isAuthenticated: req.session.isLoggedIn,
-        // // generate a token and add it to our views
-        // // to prevent CSRF attacks
-        // csrfToken: req.csrfToken(), // given by the csrf package
-        path: '/' // main page
+  // convert page to integer
+  // if the query is not defined, default to the first page
+  const page = +req.query.page || 1;
+
+  Product.find().countDocuments().then(numProducts => {
+    const totalItems = numProducts;
+    Product.find() // dosn't return a cursor but the actual array
+      .skip((page - 1) * ITEMS_PER_PAGE) // skip previous pages
+      .limit(ITEMS_PER_PAGE) // limit to max items per page
+      .then(products => {
+        //console.log(products);
+        res.render('shop/index', {
+          prods: products,
+          pageTitle: 'All Products',
+          // isAuthenticated: req.session.isLoggedIn,
+          // // generate a token and add it to our views
+          // // to prevent CSRF attacks
+          // csrfToken: req.csrfToken(), // given by the csrf package
+          currentPage: page,
+          hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+          hasPreviousPage: page > 1,
+          nextPage: page + 1,
+          previousPage: page - 1,
+          lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
+          path: '/' // main page
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        // for now, use Express to render the error page
+        const error = new Error(err); // 'Creating a new product failed.');
+        error.httpStatusCode = 500;
+        // throw the error onto until an error-handling middleware catches it
+        return next(error);
       });
-    })
-    .catch(err => {
-      console.log(err);
-      // for now, use Express to render the error page
-      const error = new Error(err); // 'Creating a new product failed.');
-      error.httpStatusCode = 500;
-      // throw the error onto until an error-handling middleware catches it
-      return next(error);
-    });
+  });
+
   // const tagSearch = req.query.tagSearch;
   // if (!tagSearch) {
   //   Product.fetchAll(products => {
